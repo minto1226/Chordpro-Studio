@@ -1,0 +1,127 @@
+@page {
+  size: A4 portrait;
+  margin: 14mm 15mm;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+  color: #111111;
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 180mm;
+  margin: 0 auto;
+}
+
+.song-header {
+  text-align: center;
+  margin-bottom: 6mm;
+  padding-bottom: 2mm;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.song-title {
+  margin: 0 0 2mm 0;
+  font-size: 18pt;
+  font-weight: 700;
+  color: #000000;
+}
+
+.song-meta {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-size: 10.5pt;
+  font-weight: 600;
+  color: #334155;
+}
+
+.section-block {
+  margin-bottom: 4mm;
+}
+
+.section-label {
+  font-size: 9pt;
+  font-weight: 700;
+  color: #64748b;
+  margin: 2mm 0 1.5mm 0;
+}
+
+.pair-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 3.5mm;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.phrase {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.bar-sep {
+  color: #334155;
+  font-weight: 400;
+  font-size: 11pt;
+  padding: 0 6px;
+  align-self: flex-start;
+  line-height: 1.2;
+}
+
+.seg {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  vertical-align: bottom;
+}
+
+.chord {
+  font-size: 10.5pt;
+  font-weight: 700;
+  color: #000000;
+  line-height: 1.25;
+  min-height: 1.25em;
+  padding-right: 4px;
+  white-space: nowrap;
+}
+
+.lyric {
+  font-size: 10.5pt;
+  font-weight: 700;
+  color: #0056d6;
+  line-height: 1.35;
+  min-height: 1.35em;
+  white-space: pre-wrap;
+}
+
+.chords-only-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 3.5mm;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.chords-only-group {
+  display: inline-flex;
+  gap: 14px;
+}
+
+.page-break {
+  break-before: page;
+  page-break-before: always;
+}

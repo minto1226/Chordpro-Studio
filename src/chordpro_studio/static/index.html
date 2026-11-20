@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>U-FRET ChordPro Local Editor</title>
+  <style>
+    :root { --bg: #f8fafc; --card: #ffffff; --border: #cbd5e1; --text: #0f172a; --muted: #64748b; --primary: #2563eb; --danger: #dc2626; --ok: #16a34a; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+    header { background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    select, input, button { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; background: #fff; }
+    button { cursor: pointer; }
+    button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #statusBanner { padding: 8px 16px; font-size: 14px; display: none; }
+    #statusBanner.ok { display: block; background: #dcfce7; color: #166534; }
+    #statusBanner.err { display: block; background: #fee2e2; color: #991b1b; }
+    #statusBanner.warn { display: block; background: #fef9c3; color: #854d0e; }
+    .summary { padding: 8px 16px; background: #f1f5f9; border-bottom: 1px solid var(--border); font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; }
+    .dirty-badge { color: var(--danger); font-weight: 600; display: none; }
+    main { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px 16px; height: calc(100vh - 130px); }
+    .pane { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .pane-header { padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    textarea { flex: 1; width: 100%; border: none; padding: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; line-height: 1.5; resize: none; outline: none; }
+    #conflictBar { display: none; padding: 8px 16px; background: #fee2e2; border-bottom: 1px solid #fca5a5; gap: 8px; align-items: center; }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; height: auto; } textarea { min-height: 320px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="toolbar">
+      <strong>ChordPro Editor</strong>
+      <select id="fileSelect"><option value="">-- 選擇 .cho 檔案 --</option></select>
+      <button id="reloadBtn" type="button">重新載入</button>
+      <span id="dirtyBadge" class="dirty-badge">● 未儲存變更</span>
+    </div>
+    <div class="toolbar">
+      <button id="validateBtn" type="button">驗證 CHO</button>
+      <button id="saveBtn" class="primary" type="button">儲存原檔</button>
+      <button id="saveAsBtn" type="button">另存新檔</button>
+    </div>
+  </header>
+
+  <div id="statusBanner"></div>
+  <div id="conflictBar">
+    <span>檔案已被外部修改，無法直接覆蓋。請選擇：</span>
+    <button id="conflictReloadBtn" type="button">放棄編輯並重新載入</button>
+    <button id="conflictSaveAsBtn" type="button">另存為新檔</button>
+  </div>
+
+  <div class="summary" id="summaryBar">
+    <span>歌名：<strong id="sumTitle">-</strong></span>
+    <span>歌手：<strong id="sumArtist">-</strong></span>
+    <span>來源 Capo：<strong id="sumCapo">-</strong></span>
+    <span>段落/行/和弦：<strong id="sumCounts">-</strong></span>
+    <span id="sumWarnings" style="color:#854d0e;"></span>
+  </div>
+
+  <main>
+    <section class="pane">
+      <div class="pane-header">
+        <span>編輯區（權威 .cho 內容）</span>
+      </div>
+      <textarea id="editorArea" spellcheck="false" placeholder="請載入或貼上 ChordPro (.cho) 內容..."></textarea>
+    </section>
+
+    <section class="pane">
+      <div class="pane-header">
+        <span>Capo 移調預覽（不修改原檔）</span>
+        <div class="toolbar">
+          <label>目標 Capo:
+            <select id="targetCapoSelect"></select>
+          </label>
+          <label id="sourceCapoLabel" style="display:none;">來源 Capo:
+            <input id="sourceCapoInput" type="number" min="0" max="12" style="width:60px;" />
+          </label>
+          <button id="previewTransposeBtn" type="button">產生預覽</button>
+          <button id="saveTransposedBtn" class="primary" type="button" disabled>另存目標 Capo</button>
+        </div>
+      </div>
+      <textarea id="previewArea" readonly placeholder="選擇目標 Capo 並產生預覽..."></textarea>
+      <div class="pane-header" style="border-top: 1px solid var(--border);">
+        <span>PDF 預覽與匯出</span>
+        <div class="toolbar">
+          <button id="pdfCurrentBtn" type="button">預覽目前 CHO PDF</button>
+          <button id="pdfTargetBtn" type="button">預覽目標 Capo PDF</button>
+          <button id="downloadPdfBtn" class="primary" type="button" disabled>下載 PDF</button>
+        </div>
+      </div>
+      <iframe id="pdfFrame" title="PDF Preview" style="width:100%; height:260px; border:none; background:#f1f5f9;"></iframe>
+    </section>
+  </main>
+
+  <script>
+    const HEADERS = { "Content-Type": "application/json", "X-Requested-With": "ufret-editor" };
+    let currentFileId = "";
+    let currentVersion = null;
+    let isDirty = false;
+    let validateReqSeq = 0;
+    let previewReqSeq = 0;
+    let pdfReqSeq = 0;
+    let previewState = { valid: false, targetCapo: null, choText: "" };
+    let pdfState = { valid: false, blobUrl: null, filename: "chord_sheet.pdf" };
+    let debounceTimer = null;
+
+    const fileSelect = document.getElementById("fileSelect");
+    const editorArea = document.getElementById("editorArea");
+    const previewArea = document.getElementById("previewArea");
+    const pdfFrame = document.getElementById("pdfFrame");
+    const pdfCurrentBtn = document.getElementById("pdfCurrentBtn");
+    const pdfTargetBtn = document.getElementById("pdfTargetBtn");
+    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+    const targetCapoSelect = document.getElementById("targetCapoSelect");
+    const sourceCapoLabel = document.getElementById("sourceCapoLabel");
+    const sourceCapoInput = document.getElementById("sourceCapoInput");
+    const saveTransposedBtn = document.getElementById("saveTransposedBtn");
+    const statusBanner = document.getElementById("statusBanner");
+    const conflictBar = document.getElementById("conflictBar");
+    const dirtyBadge = document.getElementById("dirtyBadge");
+
+    function invalidatePdf() {
+      pdfReqSeq++;
+      if (pdfState.blobUrl) {
+        URL.revokeObjectURL(pdfState.blobUrl);
+      }
+      pdfState = { valid: false, blobUrl: null, filename: "chord_sheet.pdf" };
+      pdfFrame.src = "about:blank";
+      downloadPdfBtn.disabled = true;
+    }
+
+    function invalidatePreview() {
+      previewReqSeq++;
+      previewState = { valid: false, targetCapo: null, choText: "" };
+      previewArea.value = "";
+      saveTransposedBtn.disabled = true;
+      invalidatePdf();
+    }
+
+    function confirmDiscardIfDirty(actionLabel) {
+      if (!isDirty) return true;
+      return confirm(`目前有未儲存變更，確定要${actionLabel}嗎？`);
+    }
+
+    for (let i = 0; i <= 12; i++) {
+      const opt = document.createElement("option");
+      opt.value = String(i);
+      opt.textContent = `Capo ${i}`;
+      targetCapoSelect.appendChild(opt);
+    }
+
+    function setStatus(msg, kind = "ok") {
+      statusBanner.textContent = msg;
+      statusBanner.className = kind;
+    }
+
+    function setDirty(dirty) {
+      isDirty = dirty;
+      dirtyBadge.style.display = dirty ? "inline" : "none";
+    }
+
+    function updateSummary(s) {
+      document.getElementById("sumTitle").textContent = s.title || "-";
+      document.getElementById("sumArtist").textContent = s.artist || "-";
+      const capoText = s.capo_status === "known" ? `Capo ${s.capo_value}` : s.capo_status;
+      document.getElementById("sumCapo").textContent = capoText;
+      document.getElementById("sumCounts").textContent = `${s.section_count} / ${s.line_count} / ${s.chord_count}`;
+      document.getElementById("sumWarnings").textContent = (s.warnings && s.warnings.length) ? `警告: ${s.warnings.join("; ")}` : "";
+      sourceCapoLabel.style.display = s.capo_status === "known" ? "none" : "inline";
+    }
+
+    async function refreshFileList() {
+      const res = await fetch("/api/files");
+      const data = await res.json();
+      const prev = fileSelect.value;
+      fileSelect.innerHTML = '<option value="">-- 選擇 .cho 檔案 --</option>';
+      for (const f of data.files || []) {
+        const opt = document.createElement("option");
+        opt.value = f;
+        opt.textContent = f;
+        fileSelect.appendChild(opt);
+      }
+      if (prev && data.files.includes(prev)) fileSelect.value = prev;
+    }
+
+    async function loadFile(fileId) {
+      if (!fileId) return;
+      const res = await fetch(`/api/files/${encodeURIComponent(fileId)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setStatus(data.detail || "載入失敗", "err");
+        return;
+      }
+      currentFileId = data.file_id;
+      currentVersion = data.version_token;
+      editorArea.value = data.content;
+      invalidatePreview();
+      conflictBar.style.display = "none";
+      setDirty(false);
+      updateSummary(data.summary);
+      setStatus(`已載入 ${data.file_id}`, "ok");
+    }
+
+    async function validateCurrent() {
+      const seq = ++validateReqSeq;
+      const res = await fetch("/api/validate", {
+        method: "POST",
+        headers: HEADERS,
+        body: JSON.stringify({ content: editorArea.value }),
+      });
+      if (seq !== validateReqSeq) return;
+      const data = await res.json();
+      if (!res.ok) {
+        setStatus(data.detail || "驗證失敗", "err");
+        return;
+      }
+      updateSummary(data.summary);
+      setStatus("驗證通過", "ok");
+    }
+
+    async function transposePreview() {
+      const seq = ++previewReqSeq;
+      const requestedCapo = Number(targetCapoSelect.value);
+      const body = {
+        content: editorArea.value,
+        target_capo: requestedCapo,
+      };
+      if (sourceCapoLabel.style.display !== "none" && sourceCapoInput.value !== "") {
+        body.source_capo = Number(sourceCapoInput.value);
+      }
+      const res = await fetch("/api/transpose", {
+        method: "POST",
+        headers: HEADERS,
+        body: JSON.stringify(body),
+      });
+      if (seq !== previewReqSeq) return;
+      const data = await res.json();
+      if (!res.ok) {
+        invalidatePreview();
+        setStatus(data.detail || "移調失敗", "err");
+        return;
+      }
+      previewState = { valid: true, targetCapo: requestedCapo, choText: data.cho_text };
+      previewArea.value = data.cho_text;
+      saveTransposedBtn.disabled = false;
+      setStatus(`已產生 Capo ${requestedCapo} 預覽（原檔未變更）`, "ok");
+    }
+
+    async function saveOriginal() {
+      if (!currentFileId) {
+        setStatus("請先載入檔案或使用「另存新檔」", "warn");
+        return;
+      }
+      const res = await fetch("/api/save", {
+        method: "POST",
+        headers: HEADERS,
+        body: JSON.stringify({
+          file_id: currentFileId,
+          content: editorArea.value,
+          expected_version: currentVersion,
+          save_as: false,
+        }),
+      });
+      const data = await res.json();
+      if (res.status === 409) {
+        conflictBar.style.display = "flex";
+        setStatus(data.detail || "版本衝突", "err");
+        return;
+      }
+      if (!res.ok) {
+        setStatus(data.detail || "儲存失敗", "err");
+        return;
+      }
+      currentVersion = data.version_token;
+      conflictBar.style.display = "none";
+      setDirty(false);
+      updateSummary(data.summary);
+      setStatus(`已儲存 ${data.file_id}`, "ok");
+    }
+
+    async function saveAsContent(contentToSave, defaultName) {
+      const name = prompt("請輸入新檔名（需以 .cho 結尾）：", defaultName);
+      if (!name) return;
+      const res = await fetch("/api/save", {
+        method: "POST",
+        headers: HEADERS,
+        body: JSON.stringify({ file_id: name, content: contentToSave, save_as: true, force: false }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setStatus(data.detail || "另存新檔失敗", "err");
+        return;
+      }
+      await refreshFileList();
+      setStatus(`已另存為 ${data.file_id}`, "ok");
+    }
+
+    fileSelect.addEventListener("change", () => {
+      if (!confirmDiscardIfDirty("切換檔案")) {
+        fileSelect.value = currentFileId;
+        return;
+      }
+      loadFile(fileSelect.value);
+    });
+
+    editorArea.addEventListener("input", () => {
+      setDirty(true);
+      invalidatePreview();
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(validateCurrent, 400);
+    });
+
+    targetCapoSelect.addEventListener("change", invalidatePreview);
+    sourceCapoInput.addEventListener("input", invalidatePreview);
+
+    document.getElementById("reloadBtn").addEventListener("click", () => {
+      const target = currentFileId || fileSelect.value;
+      if (!target) return;
+      if (!confirmDiscardIfDirty("重新載入檔案")) return;
+      loadFile(target);
+    });
+    document.getElementById("validateBtn").addEventListener("click", validateCurrent);
+    document.getElementById("previewTransposeBtn").addEventListener("click", transposePreview);
+    document.getElementById("saveBtn").addEventListener("click", saveOriginal);
+    document.getElementById("saveAsBtn").addEventListener("click", () => saveAsContent(editorArea.value, currentFileId || "edited.cho"));
+    saveTransposedBtn.addEventListener("click", () => {
+      if (!previewState.valid || previewState.targetCapo === null) {
+        setStatus("請先產生目標 Capo 預覽", "warn");
+        return;
+      }
+      const base = (currentFileId || "song.cho").replace(/\.cho$/, "");
+      saveAsContent(previewState.choText, `${base}_capo${previewState.targetCapo}.cho`);
+    });
+    document.getElementById("conflictReloadBtn").addEventListener("click", () => loadFile(currentFileId));
+    document.getElementById("conflictSaveAsBtn").addEventListener("click", () => saveAsContent(editorArea.value, `conflict_${currentFileId || "song.cho"}`));
+
+    window.addEventListener("beforeunload", (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    });
+
+    async function generatePdf(useTargetCapo) {
+      const seq = ++pdfReqSeq;
+      pdfCurrentBtn.disabled = true;
+      pdfTargetBtn.disabled = true;
+      setStatus("PDF 渲染中...", "warn");
+      const body = {
+        content: editorArea.value,
+        use_target_capo: useTargetCapo,
+      };
+      if (useTargetCapo) {
+        body.target_capo = Number(targetCapoSelect.value);
+        if (sourceCapoLabel.style.display !== "none" && sourceCapoInput.value !== "") {
+          body.source_capo = Number(sourceCapoInput.value);
+        }
+      }
+      try {
+        const res = await fetch("/api/pdf", {
+          method: "POST",
+          headers: HEADERS,
+          body: JSON.stringify(body),
+        });
+        if (seq !== pdfReqSeq) return;
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          invalidatePdf();
+          setStatus(errData.detail || "PDF 生成失敗", "err");
+          return;
+        }
+        const blob = await res.blob();
+        if (seq !== pdfReqSeq) return;
+        if (pdfState.blobUrl) URL.revokeObjectURL(pdfState.blobUrl);
+        const blobUrl = URL.createObjectURL(blob);
+        const rawName = res.headers.get("X-Pdf-Filename");
+        const filename = rawName ? decodeURIComponent(rawName) : "chord_sheet.pdf";
+        pdfState = { valid: true, blobUrl, filename };
+        pdfFrame.src = blobUrl;
+        downloadPdfBtn.disabled = false;
+        setStatus(`PDF 已就緒（${filename}，未修改原檔）`, "ok");
+      } finally {
+        pdfCurrentBtn.disabled = false;
+        pdfTargetBtn.disabled = false;
+      }
+    }
+
+    pdfCurrentBtn.addEventListener("click", () => generatePdf(false));
+    pdfTargetBtn.addEventListener("click", () => generatePdf(true));
+    downloadPdfBtn.addEventListener("click", () => {
+      if (!pdfState.valid || !pdfState.blobUrl) return;
+      const a = document.createElement("a");
+      a.href = pdfState.blobUrl;
+      a.download = pdfState.filename;
+      a.click();
+    });
+
+    refreshFileList();
+  </script>
+</body>
+</html>

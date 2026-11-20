@@ -1,0 +1,278 @@
+{
+  "$defs": {
+    "CapoInfo": {
+      "description": "Capo value and extraction status.\n\nExplicitly distinguishes Capo 0 (status='known', value=0) from\nunknown/failed extraction (status='unknown'|'failed', value=None).",
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/CapoStatus"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "maximum": 12,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "raw_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Original capo text from the source page (e.g., 'カポなし', 'Capo 2').",
+          "title": "Raw Text"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "CapoInfo",
+      "type": "object"
+    },
+    "CapoStatus": {
+      "description": "Extraction status of capo information.",
+      "enum": [
+        "known",
+        "unknown",
+        "failed"
+      ],
+      "title": "CapoStatus",
+      "type": "string"
+    },
+    "ChordAnchor": {
+      "description": "A chord anchored to a Unicode character index in a lyric line.",
+      "properties": {
+        "name": {
+          "description": "Chord symbol, e.g. 'F#m7', 'Bb', 'C/G'.",
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "char_index": {
+          "description": "0-based Unicode code point index in lyrics for lyric lines; plain-text character offset after stripping chord markers for chords_only.",
+          "minimum": 0,
+          "title": "Char Index",
+          "type": "integer"
+        },
+        "chord_index": {
+          "description": "0-based order of this chord within the line.",
+          "minimum": 0,
+          "title": "Chord Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "char_index",
+        "chord_index"
+      ],
+      "title": "ChordAnchor",
+      "type": "object"
+    },
+    "LineType": {
+      "description": "Classification of a song line.",
+      "enum": [
+        "lyric_with_chords",
+        "chords_only",
+        "lyric_only",
+        "blank"
+      ],
+      "title": "LineType",
+      "type": "string"
+    },
+    "Section": {
+      "description": "A named, ordered section of a song (e.g. Intro, Verse 1, Chorus).",
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "order": {
+          "minimum": 0,
+          "title": "Order",
+          "type": "integer"
+        },
+        "lines": {
+          "items": {
+            "$ref": "#/$defs/SongLine"
+          },
+          "title": "Lines",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "order"
+      ],
+      "title": "Section",
+      "type": "object"
+    },
+    "SongLine": {
+      "description": "A single line within a song section.",
+      "properties": {
+        "line_type": {
+          "$ref": "#/$defs/LineType"
+        },
+        "lyrics": {
+          "default": "",
+          "title": "Lyrics",
+          "type": "string"
+        },
+        "chords": {
+          "items": {
+            "$ref": "#/$defs/ChordAnchor"
+          },
+          "title": "Chords",
+          "type": "array"
+        },
+        "raw_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional original raw line text (used to preserve exact spacing on chords_only lines).",
+          "title": "Raw Text"
+        }
+      },
+      "required": [
+        "line_type"
+      ],
+      "title": "SongLine",
+      "type": "object"
+    },
+    "SourceDiagnostics": {
+      "description": "Provenance and diagnostic information from scraping or importing.",
+      "properties": {
+        "source_type": {
+          "description": "Origin type, e.g. 'ufret_web', 'chordpro_import', 'manual'.",
+          "title": "Source Type",
+          "type": "string"
+        },
+        "fetched_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fetched At"
+        },
+        "parser_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parser Version"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "errors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Errors",
+          "type": "array"
+        },
+        "extra": {
+          "additionalProperties": true,
+          "description": "Additional non-lossy metadata preserved from source.",
+          "title": "Extra",
+          "type": "object"
+        }
+      },
+      "required": [
+        "source_type"
+      ],
+      "title": "SourceDiagnostics",
+      "type": "object"
+    }
+  },
+  "description": "Intermediate canonical representation of a song.",
+  "properties": {
+    "schema_version": {
+      "default": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "title": {
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "artist": {
+      "minLength": 1,
+      "title": "Artist",
+      "type": "string"
+    },
+    "source_url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Url"
+    },
+    "capo": {
+      "$ref": "#/$defs/CapoInfo"
+    },
+    "sections": {
+      "items": {
+        "$ref": "#/$defs/Section"
+      },
+      "title": "Sections",
+      "type": "array"
+    },
+    "diagnostics": {
+      "$ref": "#/$defs/SourceDiagnostics"
+    }
+  },
+  "required": [
+    "title",
+    "artist",
+    "capo",
+    "diagnostics"
+  ],
+  "title": "SongDocument",
+  "type": "object"
+}

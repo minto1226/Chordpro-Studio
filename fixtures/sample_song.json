@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "title": "合成サンプル曲",
+  "artist": "テストアーティスト",
+  "source_url": null,
+  "capo": {
+    "status": "known",
+    "value": 2,
+    "raw_text": "Capo 2"
+  },
+  "sections": [
+    {
+      "id": "intro",
+      "name": "Intro",
+      "order": 0,
+      "lines": [
+        {
+          "line_type": "chords_only",
+          "lyrics": "",
+          "chords": [
+            {"name": "F#m7", "char_index": 0, "chord_index": 0},
+            {"name": "Bb", "char_index": 1, "chord_index": 1},
+            {"name": "C/G", "char_index": 2, "chord_index": 2}
+          ]
+        },
+        {
+          "line_type": "blank",
+          "lyrics": "",
+          "chords": []
+        }
+      ]
+    },
+    {
+      "id": "verse-1",
+      "name": "Verse 1",
+      "order": 1,
+      "lines": [
+        {
+          "line_type": "lyric_with_chords",
+          "lyrics": "あした晴れたらいいな",
+          "chords": [
+            {"name": "F#m7", "char_index": 0, "chord_index": 0},
+            {"name": "C/G", "char_index": 5, "chord_index": 1}
+          ]
+        }
+      ]
+    }
+  ],
+  "diagnostics": {
+    "source_type": "manual",
+    "fetched_at": "2026-11-20T10:00:00+08:00",
+    "parser_version": "1.0.0",
+    "warnings": [],
+    "errors": [],
+    "extra": {}
+  }
+}
