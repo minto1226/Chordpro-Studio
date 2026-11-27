@@ -1,6 +1,6 @@
-"""Module interface contracts for U-FRET Chord Converter.
+"""Module interface contracts for ChordPro Studio.
 
-These Protocols define the boundaries between search, scraper, ChordPro converter,
+These Protocols define the boundaries between the ChordPro converter,
 editor, and PDF renderer without premature implementation.
 """
 
@@ -9,23 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Protocol
 
-from chordpro_studio.models import PdfRenderOptions, SearchResult, SongDocument
-
-
-class SongSearcher(Protocol):
-    """Searches U-FRET for songs by keyword or title."""
-
-    def search(self, query: str) -> list[SearchResult]:
-        """Return matching songs for the given search query."""
-        ...
-
-
-class UfretScraper(Protocol):
-    """Fetches and parses a U-FRET song page into a SongDocument."""
-
-    def fetch(self, url: str) -> SongDocument:
-        """Fetch a song page from U-FRET and return a structured SongDocument."""
-        ...
+from chordpro_studio.models import PdfRenderOptions, SongDocument
 
 
 class ChordProConverter(Protocol):

@@ -115,17 +115,17 @@ class StandardChordProConverter:
         if song.capo.status == CapoStatus.KNOWN and song.capo.value is not None:
             out.append(f"{{capo: {song.capo.value}}}")
 
-        out.append(f"{{meta: ufret_schema_version {song.schema_version}}}")
+        out.append(f"{{meta: cstudio_schema_version {song.schema_version}}}")
         if song.source_url:
-            out.append(f"{{meta: ufret_source_url {song.source_url}}}")
-        out.append(f"{{meta: ufret_capo_status {song.capo.status.value}}}")
+            out.append(f"{{meta: cstudio_source_url {song.source_url}}}")
+        out.append(f"{{meta: cstudio_capo_status {song.capo.status.value}}}")
         if song.capo.raw_text is not None:
-            out.append(f"{{meta: ufret_capo_raw {song.capo.raw_text}}}")
+            out.append(f"{{meta: cstudio_capo_raw {song.capo.raw_text}}}")
         if song.capo.status == CapoStatus.KNOWN and song.capo.value is not None:
-            out.append(f"{{meta: ufret_capo_value {song.capo.value}}}")
+            out.append(f"{{meta: cstudio_capo_value {song.capo.value}}}")
 
         for section in sorted(song.sections, key=lambda s: s.order):
-            out.append(f"{{meta: ufret_section_id {section.id}}}")
+            out.append(f"{{meta: cstudio_section_id {section.id}}}")
             out.append(f"{{comment: {section.name}}}")
             for line in section.lines:
                 if line.line_type == LineType.BLANK:
@@ -171,7 +171,7 @@ class StandardChordProConverter:
                 if key == "meta":
                     if " " in val:
                         m_key, m_val = val.split(" ", 1)
-                        if m_key == "ufret_section_id":
+                        if m_key == "cstudio_section_id":
                             pending_section_id = m_val.strip()
                         else:
                             meta[m_key] = m_val.strip()
@@ -218,14 +218,14 @@ class StandardChordProConverter:
             fetched_at=datetime.now(UTC),
             parser_version=PARSER_VERSION,
             warnings=warnings,
-            extra={k: v for k, v in meta.items() if k != "ufret_capo_value"},
+            extra={k: v for k, v in meta.items() if k != "cstudio_capo_value"},
         )
 
         return SongDocument(
-            schema_version=meta.get("ufret_schema_version", "1.0.0"),
+            schema_version=meta.get("cstudio_schema_version", "1.0.0"),
             title=title,
             artist=artist,
-            source_url=meta.get("ufret_source_url"),
+            source_url=meta.get("cstudio_source_url"),
             capo=capo,
             sections=sections,
             diagnostics=diagnostics,
@@ -240,17 +240,17 @@ class StandardChordProConverter:
         if capo_directive is not None:
             if capo_directive.isdigit() and 0 <= int(capo_directive) <= 12:
                 val = int(capo_directive)
-                orig_val = meta.get("ufret_capo_value")
+                orig_val = meta.get("cstudio_capo_value")
                 if orig_val is not None and str(val) == orig_val:
-                    raw_text = meta.get("ufret_capo_raw")
+                    raw_text = meta.get("cstudio_capo_raw")
                 else:
                     raw_text = f"Capo {val}"
                 return CapoInfo(status=CapoStatus.KNOWN, value=val, raw_text=raw_text)
             warnings.append(f"Invalid {{capo: {capo_directive}}} directive.")
             return CapoInfo(status=CapoStatus.FAILED, value=None, raw_text=capo_directive)
 
-        orig_status = meta.get("ufret_capo_status")
-        orig_raw = meta.get("ufret_capo_raw")
+        orig_status = meta.get("cstudio_capo_status")
+        orig_raw = meta.get("cstudio_capo_raw")
         if orig_status == CapoStatus.FAILED.value:
             return CapoInfo(status=CapoStatus.FAILED, value=None, raw_text=orig_raw)
         return CapoInfo(status=CapoStatus.UNKNOWN, value=None, raw_text=orig_raw)

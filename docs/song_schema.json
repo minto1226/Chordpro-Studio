@@ -167,7 +167,7 @@
       "description": "Provenance and diagnostic information from scraping or importing.",
       "properties": {
         "source_type": {
-          "description": "Origin type, e.g. 'ufret_web', 'chordpro_import', 'manual'.",
+          "description": "Origin type, e.g. 'web_import', 'chordpro_import', 'manual'.",
           "title": "Source Type",
           "type": "string"
         },

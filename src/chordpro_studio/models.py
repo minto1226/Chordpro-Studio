@@ -1,4 +1,4 @@
-"""Core data models for U-FRET Chord Converter."""
+"""Core data models for ChordPro Studio."""
 
 from __future__ import annotations
 
@@ -108,7 +108,7 @@ class SourceDiagnostics(BaseModel):
     """Provenance and diagnostic information from scraping or importing."""
 
     source_type: str = Field(
-        description="Origin type, e.g. 'ufret_web', 'chordpro_import', 'manual'."
+        description="Origin type, e.g. 'web_import', 'chordpro_import', 'manual'."
     )
     fetched_at: datetime | None = None
     parser_version: str | None = None
@@ -130,14 +130,6 @@ class SongDocument(BaseModel):
     capo: CapoInfo
     sections: list[Section] = Field(default_factory=list)
     diagnostics: SourceDiagnostics
-
-
-class SearchResult(BaseModel):
-    """A single search result from U-FRET search."""
-
-    title: str
-    artist: str
-    url: str
 
 
 class PdfRenderOptions(BaseModel):

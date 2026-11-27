@@ -81,7 +81,7 @@ def test_special_chords() -> None:
 
 
 def test_japanese_and_unicode_lyrics() -> None:
-    lyrics = "沈むように溶けてゆくように♪"
+    lyrics = "あした晴れたらいいな♪"
     line = SongLine(
         line_type=LineType.LYRIC_WITH_CHORDS,
         lyrics=lyrics,
@@ -90,7 +90,7 @@ def test_japanese_and_unicode_lyrics() -> None:
             ChordAnchor(name="Bb", char_index=5, chord_index=1),
         ],
     )
-    assert lyrics[line.chords[1].char_index] == "溶"
+    assert lyrics[line.chords[1].char_index] == "た"
 
 
 def test_capo_states_distinction() -> None:

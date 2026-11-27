@@ -35,7 +35,7 @@ def _make_doc(lines: list[SongLine], *, capo_val: int | None = 4) -> SongDocumen
         artist="歌手&A",
         capo=capo,
         sections=[Section(id="s1", name="Verse 1", order=0, lines=lines)],
-        diagnostics=SourceDiagnostics(source_type="ufret_web", parser_version="0.1.0"),
+        diagnostics=SourceDiagnostics(source_type="web_import", parser_version="0.1.0"),
     )
 
 

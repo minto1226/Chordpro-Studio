@@ -1,11 +1,9 @@
-"""U-FRET Chord Converter package."""
+"""ChordPro Studio package."""
 
 from chordpro_studio.interfaces import (
     ChordProConverter,
     PdfRenderer,
     SongEditor,
-    SongSearcher,
-    UfretScraper,
 )
 from chordpro_studio.models import (
     CapoInfo,
@@ -13,7 +11,6 @@ from chordpro_studio.models import (
     ChordAnchor,
     LineType,
     PdfRenderOptions,
-    SearchResult,
     Section,
     SongDocument,
     SongLine,
@@ -28,12 +25,9 @@ __all__ = [
     "LineType",
     "PdfRenderOptions",
     "PdfRenderer",
-    "SearchResult",
     "Section",
     "SongDocument",
     "SongEditor",
     "SongLine",
-    "SongSearcher",
     "SourceDiagnostics",
-    "UfretScraper",
 ]

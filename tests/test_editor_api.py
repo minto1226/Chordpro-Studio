@@ -24,11 +24,11 @@ from chordpro_studio.web_api import create_app
 SAMPLE_CHO = """{title: テスト曲}
 {artist: テスト歌手}
 {capo: 0}
-{meta: ufret_schema_version 1.0.0}
-{meta: ufret_capo_status known}
-{meta: ufret_capo_raw capo=0}
-{meta: ufret_capo_value 0}
-{meta: ufret_section_id main}
+{meta: cstudio_schema_version 1.0.0}
+{meta: cstudio_capo_status known}
+{meta: cstudio_capo_raw capo=0}
+{meta: cstudio_capo_value 0}
+{meta: cstudio_section_id main}
 {comment: Main}
 [E]\u3000[B]\u3000[F#]\u3000[B]
 月[G#m]曜日から前を[E/G#]向けない
@@ -55,7 +55,7 @@ def test_raw_text_inconsistency_raises() -> None:
                 ],
             )
         ],
-        diagnostics=SourceDiagnostics(source_type="ufret_web"),
+        diagnostics=SourceDiagnostics(source_type="web_import"),
     )
     with pytest.raises(TranspositionError, match="Inconsistent chords_only line"):
         transpose_document(doc, target_capo=2)
@@ -80,7 +80,7 @@ def test_same_capo_preserves_spelling() -> None:
                 ],
             )
         ],
-        diagnostics=SourceDiagnostics(source_type="ufret_web"),
+        diagnostics=SourceDiagnostics(source_type="web_import"),
     )
     same = transpose_document(doc, target_capo=2)
     assert same.sections[0].lines[0].chords[0].name == "Db"
@@ -91,7 +91,7 @@ def test_api_load_validate_transpose_save_and_conflicts(tmp_path: Path) -> None:
     cho_path.write_text(SAMPLE_CHO, encoding="utf-8")
 
     client = TestClient(create_app(base_dir=tmp_path))
-    local_hdr = {"X-Requested-With": "ufret-editor"}
+    local_hdr = {"X-Requested-With": "chordpro-editor"}
 
     # Homepage UI
     resp_home = client.get("/")
@@ -245,7 +245,7 @@ def test_real_song_206360_api_transpose_roundtrip(tmp_path: Path) -> None:
     resp = client.post(
         "/api/transpose",
         json={"content": cho, "target_capo": 4},
-        headers={"X-Requested-With": "ufret-editor"},
+        headers={"X-Requested-With": "chordpro-editor"},
     )
     assert resp.status_code == 200
     assert resp.json()["summary"]["capo_value"] == 4

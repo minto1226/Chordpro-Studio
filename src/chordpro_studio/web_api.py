@@ -68,7 +68,7 @@ def _verify_local_post(request: Request) -> None:
         if host not in ALLOWED_LOCAL_HOSTS:
             raise HTTPException(status_code=403, detail=f"Disallowed origin: {origin}")
         return
-    if x_req != "ufret-editor":
+    if x_req != "chordpro-editor":
         raise HTTPException(
             status_code=403,
             detail="Missing local Origin or X-Requested-With header.",
@@ -89,7 +89,7 @@ def _raise_http_for_editor_error(exc: EditorError) -> None:
 
 def create_app(base_dir: Path = Path("outputs")) -> FastAPI:
     """Create a FastAPI app scoped to `base_dir`."""
-    app = FastAPI(title="U-FRET ChordPro Editor API", version="0.1.0")
+    app = FastAPI(title="ChordPro Studio Editor API", version="0.1.0")
     editor = LocalSongEditor(base_dir=base_dir)
 
     @app.middleware("http")
@@ -204,7 +204,7 @@ def create_app(base_dir: Path = Path("outputs")) -> FastAPI:
         )
         filename = f"{safe_title}{capo_suffix}.pdf"
 
-        with _PDF_RENDER_LOCK, tempfile.TemporaryDirectory(prefix="ufret_web_pdf_") as tmp_dir:
+        with _PDF_RENDER_LOCK, tempfile.TemporaryDirectory(prefix="chordpro_pdf_") as tmp_dir:
             tmp_pdf = Path(tmp_dir) / "output.pdf"
             try:
                 ChromiumPdfRenderer(force=True).render(doc, tmp_pdf)

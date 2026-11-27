@@ -63,7 +63,7 @@ def _make_sample_doc() -> SongDocument:
                 ],
             )
         ],
-        diagnostics=SourceDiagnostics(source_type="ufret_web"),
+        diagnostics=SourceDiagnostics(source_type="web_import"),
     )
 
 
@@ -178,7 +178,7 @@ def test_trailing_chord_css_has_min_height() -> None:
                 ],
             )
         ],
-        diagnostics=SourceDiagnostics(source_type="ufret_web"),
+        diagnostics=SourceDiagnostics(source_type="web_import"),
     )
     html_out = render_song_html(doc)
     assert "min-height: 1.35em;" in html_out

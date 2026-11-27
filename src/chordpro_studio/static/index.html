@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>U-FRET ChordPro Local Editor</title>
+  <title>ChordPro Studio Local Editor</title>
   <style>
     :root { --bg: #f8fafc; --card: #ffffff; --border: #cbd5e1; --text: #0f172a; --muted: #64748b; --primary: #2563eb; --danger: #dc2626; --ok: #16a34a; }
     * { box-sizing: border-box; }
@@ -94,7 +94,7 @@
   </main>
 
   <script>
-    const HEADERS = { "Content-Type": "application/json", "X-Requested-With": "ufret-editor" };
+    const HEADERS = { "Content-Type": "application/json", "X-Requested-With": "chordpro-editor" };
     let currentFileId = "";
     let currentVersion = null;
     let isDirty = false;

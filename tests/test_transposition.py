@@ -88,7 +88,7 @@ def test_transpose_document_preserves_original_and_roundtrips_cho() -> None:
                 ],
             )
         ],
-        diagnostics=SourceDiagnostics(source_type="ufret_web"),
+        diagnostics=SourceDiagnostics(source_type="web_import"),
     )
 
     capo4 = transpose_document(original, target_capo=4)
@@ -136,7 +136,7 @@ def test_transpose_unknown_or_failed_capo_requires_explicit_source() -> None:
                 ],
             )
         ],
-        diagnostics=SourceDiagnostics(source_type="ufret_web"),
+        diagnostics=SourceDiagnostics(source_type="web_import"),
     )
 
     with pytest.raises(TranspositionError, match="source Capo is unknown"):

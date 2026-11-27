@@ -49,7 +49,7 @@ def resolve_chromium_executable(explicit_path: str | Path | None = None) -> str:
             return found
         raise ChromiumNotFoundError(f"Specified Chromium executable not found: {explicit_path}")
 
-    env_path = os.environ.get("UFRET_CHROMIUM_PATH")
+    env_path = os.environ.get("CHORDPRO_STUDIO_CHROMIUM_PATH")
     if env_path:
         return resolve_chromium_executable(env_path)
 
@@ -94,7 +94,7 @@ class ChromiumPdfRenderer:
         executable = resolve_chromium_executable(self.chromium_path)
         html_content = render_song_html(song)
 
-        with tempfile.TemporaryDirectory(prefix="ufret_pdf_") as tmp_dir_str:
+        with tempfile.TemporaryDirectory(prefix="chordpro_pdf_") as tmp_dir_str:
             tmp_dir = Path(tmp_dir_str)
             html_path = tmp_dir / "song.html"
             tmp_pdf = tmp_dir / "song.pdf"

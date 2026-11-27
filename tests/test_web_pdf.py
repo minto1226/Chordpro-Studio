@@ -17,11 +17,11 @@ from chordpro_studio.web_api import create_app
 SAMPLE_CHO = """{title: テスト/曲:A}
 {artist: テスト歌手}
 {capo: 0}
-{meta: ufret_schema_version 1.0.0}
-{meta: ufret_capo_status known}
-{meta: ufret_capo_raw capo=0}
-{meta: ufret_capo_value 0}
-{meta: ufret_section_id main}
+{meta: cstudio_schema_version 1.0.0}
+{meta: cstudio_capo_status known}
+{meta: cstudio_capo_raw capo=0}
+{meta: cstudio_capo_value 0}
+{meta: cstudio_section_id main}
 {comment: Main}
 [E]\u3000[B]\u3000[F#]\u3000[B]
 月[G#m]曜日から前を[E/G#]向けない
@@ -34,7 +34,7 @@ def _has_chrome() -> bool:
 
 def test_pdf_api_security_and_validation(tmp_path: Path) -> None:
     client = TestClient(create_app(base_dir=tmp_path))
-    hdr = {"X-Requested-With": "ufret-editor"}
+    hdr = {"X-Requested-With": "chordpro-editor"}
 
     # Missing Origin & X-Requested-With -> 403
     assert client.post("/api/pdf", json={"content": SAMPLE_CHO}).status_code == 403
@@ -78,7 +78,7 @@ def test_pdf_api_original_unsaved_and_capo4_export(tmp_path: Path) -> None:
     cho_file.write_text(SAMPLE_CHO, encoding="utf-8")
 
     client = TestClient(create_app(base_dir=tmp_path))
-    hdr = {"X-Requested-With": "ufret-editor"}
+    hdr = {"X-Requested-With": "chordpro-editor"}
 
     # Unsaved edit + original Capo
     edited_cho = SAMPLE_CHO.replace("向けない", "向ける")
@@ -114,7 +114,7 @@ def test_pdf_api_real_song_206360(tmp_path: Path) -> None:
     doc = SongDocument.model_validate_json(real_json.read_text(encoding="utf-8"))
     cho = StandardChordProConverter().to_chordpro(doc)
     client = TestClient(create_app(base_dir=tmp_path))
-    hdr = {"X-Requested-With": "ufret-editor"}
+    hdr = {"X-Requested-With": "chordpro-editor"}
 
     resp = client.post(
         "/api/pdf",

@@ -69,12 +69,12 @@ def test_unit_special_chords_and_capo_states() -> None:
                 ],
             )
         ],
-        diagnostics=SourceDiagnostics(source_type="ufret_web"),
+        diagnostics=SourceDiagnostics(source_type="web_import"),
     )
 
     cho = converter.to_chordpro(doc)
     assert "{capo:" not in cho
-    assert "{meta: ufret_capo_status unknown}" in cho
+    assert "{meta: cstudio_capo_status unknown}" in cho
 
     reimported = converter.from_chordpro(cho)
     _assert_documents_semantically_equal(doc, reimported)
